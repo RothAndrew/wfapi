@@ -8,6 +8,7 @@ This is an API-FIRST project, meaning that the [OpenAPI specification file](open
 ### Prerequisites
 - Docker
 - Docker Compose (probably already installed with Docker)
+- [UDS CLI](https://github.com/defenseunicorns/uds-cli)
 
 ### OpenAPI Studio
 Since this is an API-FIRST project, we edit the OpenAPI specification file before we make code changes. You can edit the OpenAPI Specification file however you want, as long as it stays compatible with the OpenAPI 3.0.2 specification and is editable in the OpenAPI Studio:
