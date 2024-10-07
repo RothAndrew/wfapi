@@ -22,7 +22,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/WfapiFileMetadata'
                     description: Success. The list of files is returned
-            operationId: getWorkflows
+            operationId: getWorkflowFiles
             summary: Get a list of all files present and ready to be consumed by a workflow
             description: ''
         post:
@@ -43,7 +43,7 @@ paths:
                     description: Success. The file has been uploaded
                 '409':
                     description: A file with the same name already exists
-            operationId: postFiles
+            operationId: uploadWorkflowFile
             summary: Upload a file to be used in a workflow.
     '/api/v1/workflows/files/{fullFileName}':
         get:
@@ -61,7 +61,7 @@ paths:
                     description: You don't have permission to download that file.
                 '404':
                     description: The requested file was not found.
-            operationId: getFile
+            operationId: downloadWorkflowFile
             summary: Download a file that was previously uploaded
         delete:
             tags:
@@ -73,7 +73,7 @@ paths:
                     description: You don't have permission to delete that file.
                 '404':
                     description: The requested file was not found.
-            operationId: deleteFile
+            operationId: deleteWorkflowFile
             summary: Delete a file that was previously uploaded
         parameters:
             -
@@ -86,6 +86,27 @@ paths:
                     type: string
                 in: path
                 required: true
+    /api/v1/workflows:
+        post:
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WorkflowSubmission'
+                required: true
+            tags:
+                - Workflows
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowInfo'
+                    description: >-
+                        Success. The workflow has been submitted. The output is the WorkflowInfo object that
+                        you can also query for at any time.
+            operationId: submitWorkflow
+            summary: Submit a workflow by providing the template to use and the parameters to use with it.
 components:
     schemas:
         WfapiFile:
@@ -110,4 +131,95 @@ components:
             properties:
                 fileName:
                     description: The fully qualified filename
+                    type: string
+        WorkflowParameter:
+            description: WorkflowParameter model
+            required:
+                - name
+                - value
+            type: object
+            properties:
+                name:
+                    description: Parameter name
+                    type: string
+                value:
+                    description: Parameter value
+                    type: string
+        WorkflowSubmission:
+            description: WorkflowSubmission model
+            required:
+                - templateName
+                - generateName
+            type: object
+            properties:
+                templateName:
+                    description: Name of the WorkflowTemplate to use
+                    type: string
+                generateName:
+                    description: >-
+                        Name prefix for the generated workflow. The actual name will be the prefix followed by
+                        a random string.
+                    type: string
+                parameters:
+                    description: Parameters for the WorkflowTemplate
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/WorkflowParameter'
+            example:
+                templateName: hello-world-template
+                generateName: hello-world-
+                parameters:
+                    -
+                        name: waitSeconds
+                        value: '1'
+        WorkflowStatus:
+            description: WorkflowStatus enum
+            enum:
+                - Pending
+                - Running
+                - Succeeded
+                - Failed
+                - Error
+            type: string
+        WorkflowInfo:
+            description: WorkflowInfo model
+            required:
+                - name
+                - uid
+                - status
+                - created
+            type: object
+            properties:
+                name:
+                    description: Unique workflow name
+                    type: string
+                uid:
+                    description: Unique workflow ID
+                    type: string
+                status:
+                    $ref: '#/components/schemas/WorkflowStatus'
+                    description: Status of the workflow test
+                message:
+                    description: Status message
+                    type: string
+                created:
+                    format: date-time
+                    description: DateTime the workflow was created
+                    type: string
+                started:
+                    format: date-time
+                    description: DateTime the workflow was started
+                    type: string
+                finished:
+                    format: date-time
+                    description: DateTime the workflow was finished
+                    type: string
+                duration:
+                    format: int32
+                    description: Time it took to finish the workflow in seconds
+                    type: integer
+                progress:
+                    description: >-
+                        Progress of the workflow in the format of "X/Y" where X is the number of tasks
+                        completed and Y is the total number of tasks
                     type: string
