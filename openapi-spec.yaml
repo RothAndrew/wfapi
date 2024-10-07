@@ -1,0 +1,113 @@
+openapi: 3.0.2
+info:
+    title: WFAPI
+    version: 0.0.1
+    description: REST API for interacting with Argo Workflows
+    contact:
+        name: Defense Unicorns
+        url: 'https://defenseunicorns.com'
+        email: navy@defenseunicorns.com
+    license:
+        name: Apache 2.0
+        url: 'https://www.apache.org/licenses/LICENSE-2.0'
+paths:
+    /api/v1/workflows/files:
+        get:
+            tags:
+                - Workflows
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WfapiFileMetadata'
+                    description: Success. The list of files is returned
+            operationId: getWorkflows
+            summary: Get a list of all files present and ready to be consumed by a workflow
+            description: ''
+        post:
+            requestBody:
+                content:
+                    multipart/form-data:
+                        schema:
+                            $ref: '#/components/schemas/WfapiFile'
+                required: true
+            tags:
+                - Workflows
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WfapiFileMetadata'
+                    description: Success. The file has been uploaded
+                '409':
+                    description: A file with the same name already exists
+            operationId: postFiles
+            summary: Upload a file to be used in a workflow.
+    '/api/v1/workflows/files/{fullFileName}':
+        get:
+            tags:
+                - Workflows
+            responses:
+                '200':
+                    content:
+                        application/octet-stream:
+                            schema:
+                                format: binary
+                                type: string
+                    description: Success. The file is returned.
+                '403':
+                    description: You don't have permission to download that file.
+                '404':
+                    description: The requested file was not found.
+            operationId: getFile
+            summary: Download a file that was previously uploaded
+        delete:
+            tags:
+                - Workflows
+            responses:
+                '204':
+                    description: Success. The file has been deleted.
+                '403':
+                    description: You don't have permission to delete that file.
+                '404':
+                    description: The requested file was not found.
+            operationId: deleteFile
+            summary: Delete a file that was previously uploaded
+        parameters:
+            -
+                examples:
+                    Example Filename:
+                        value: files%2Fmyfile.txt
+                name: fullFileName
+                description: The fully qualified filename. Must be URLEncoded.
+                schema:
+                    type: string
+                in: path
+                required: true
+components:
+    schemas:
+        WfapiFile:
+            description: A File to be uploaded
+            required:
+                - fileName
+                - file
+            type: object
+            properties:
+                fileName:
+                    description: ''
+                    type: string
+                file:
+                    format: binary
+                    description: ''
+                    type: string
+        WfapiFileMetadata:
+            description: Metadata for a file
+            required:
+                - fileName
+            type: object
+            properties:
+                fileName:
+                    description: The fully qualified filename
+                    type: string
